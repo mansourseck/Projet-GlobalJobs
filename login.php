@@ -15,25 +15,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $message = "Format d'email invalide.";
     } else {
         // Vérification de l'utilisateur dans la base de données
-        $stmt = $conn->prepare("SELECT id, password, statut FROM users WHERE email = :email");
+        $stmt = $conn->prepare("SELECT id, password, role, statut FROM users WHERE email = :email");
         $stmt->bindParam(":email", $email, PDO::PARAM_STR);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user["password"])) {
-            $_SESSION["user_id"] = $user["id"];
-            $_SESSION["statut"] = $user["statut"];
+        if ($user) {
+            if ($user['statut'] === 'bloquer') {
+                $message = "Votre compte a été bloqué par l'administrateur. Connexion impossible.";
+            } elseif (password_verify($password, $user["password"])) {
+                $_SESSION["user_id"] = $user["id"];
+                $_SESSION["role"] = $user["role"];
 
-            $table = (strcasecmp($user["statut"], "candidat") === 0) ? "candidat" : "recruteurs";
-            $stmt_check = $conn->prepare("SELECT * FROM $table WHERE user_id = :user_id");
-            $stmt_check->bindParam(":user_id", $user["id"], PDO::PARAM_INT);
-            $stmt_check->execute();
-            $existing = $stmt_check->fetch(PDO::FETCH_ASSOC);
+                $table = (strcasecmp($user["role"], "candidat") === 0) ? "candidat" : "recruteurs";
+                $stmt_check = $conn->prepare("SELECT * FROM $table WHERE user_id = :user_id");
+                $stmt_check->bindParam(":user_id", $user["id"], PDO::PARAM_INT);
+                $stmt_check->execute();
+                $existing = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
-            // Suppression de l'insertion de données
-
-            header("Location: " . ($table === "candidat" ? "./Gestion_candidats/candidats.php" : "./Gestion_recruteur/recruteur"));
-            exit();
+                header("Location: " . ($table === "candidat" ? "./Gestion_candidats/candidats.php" : "./Gestion_recruteur/recruteur"));
+                exit();
+            } else {
+                $message = "Email ou mot de passe incorrect.";
+            }
         } else {
             $message = "Email ou mot de passe incorrect.";
         }
@@ -41,4 +45,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION["message"] = $message;
     header("Location: loginh.php");
     exit();
-}
+} 
+?>

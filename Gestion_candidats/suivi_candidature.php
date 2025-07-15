@@ -10,28 +10,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $candidat_id = $_SESSION['user_id']; 
 
-// Gestion de la suppression d'une candidature
-if (isset($_POST['supprimer_candidature']) && isset($_POST['candidature_id'])) {
-    $candidature_id = (int)$_POST['candidature_id'];
-    
-    // Vérifier que la candidature appartient bien au candidat connecté
-    $verify_stmt = $conn->prepare("SELECT id FROM Candidature WHERE id = ? AND candidat_id = ?");
-    $verify_stmt->execute([$candidature_id, $candidat_id]);
-    
-    if ($verify_stmt->rowCount() > 0) {
-        // Supprimer la candidature
-        $delete_stmt = $conn->prepare("DELETE FROM Candidature WHERE id = ? AND candidat_id = ?");
-        $delete_stmt->execute([$candidature_id, $candidat_id]);
-        
-        $_SESSION['message'] = "✅ Candidature supprimée avec succès.";
-    } else {
-        $_SESSION['message'] = "❌ Erreur : Candidature non trouvée ou non autorisée.";
-    }
-    
-    // Redirection pour éviter la resoumission du formulaire
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
 
 // Récupérer toutes les candidatures du candidat avec LEFT JOIN pour éviter les pertes
 $stmt = $conn->prepare("SELECT ca.id, 
@@ -216,7 +194,6 @@ $messages_statut = [
             <div class="no-candidatures">
                 <h4>⚠️ Aucune candidature trouvée</h4>
                 <p class="text-muted">Vous n'avez encore postulé à aucune offre. Commencez dès maintenant votre recherche d'emploi !</p>
-                <a href="offres.php" class="btn btn-primary mt-2">🔍 Rechercher des offres</a>
             </div>
         <?php else: ?>
             <div class="alert alert-info mb-4">
@@ -247,9 +224,6 @@ $messages_statut = [
                             <div class="card-actions">
                                 <form method="POST" style="display: inline;" onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette candidature ? Cette action est irréversible.');">
                                     <input type="hidden" name="candidature_id" value="<?= $candidature['id'] ?>">
-                                    <button type="submit" name="supprimer_candidature" class="btn-supprimer">
-                                        🗑️ Supprimer
-                                    </button>
                                 </form>
                             </div>
                         </div>

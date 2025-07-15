@@ -5,14 +5,15 @@ include 'db.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['nom'] = trim($_POST['nom']);
     $_SESSION['prenom'] = trim($_POST['prenom']);
-    $_SESSION['statut'] = trim($_POST['statut']);
-    $_SESSION['telephone'] = trim($_POST['telephone']); // Ajout du champ téléphone
+    $_SESSION['role'] = trim($_POST['role']);
+    $_SESSION['telephone'] = trim($_POST['telephone']);
+    $_SESSION['adresse'] = trim($_POST['adresse']);
     $_SESSION['message'] = ""; // Initialiser le message
     
     $email = trim($_POST['email']);
     $password = trim($_POST['password']); // NE PAS stocker en session pour la sécurité
 
-    if (empty($_SESSION['nom']) || empty($_SESSION['prenom']) || empty($email) || empty($password) || empty($_SESSION['statut']) || empty($_SESSION['telephone'])) {
+    if (empty($_SESSION['nom']) || empty($_SESSION['prenom']) || empty($email) || empty($password) || empty($_SESSION['role']) ||  empty($_SESSION['telephone']) || empty($_SESSION['adresse'])) {
         $_SESSION['message'] = "<p class='text-danger'>Tous les champs sont obligatoires. Veuillez les remplir.</p>";
         header("Location: register.php");
         exit();
@@ -33,22 +34,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
-                $sql = "INSERT INTO users (nom, prenom, email, password, statut, telephone) VALUES (:nom, :prenom, :email, :password, :statut, :telephone)";
+                $sql = "INSERT INTO users (nom, prenom, email, password, role, telephone, adresse) VALUES (:nom, :prenom, :email, :password, :role, :telephone, :adresse)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':nom', $_SESSION['nom']);
                 $stmt->bindParam(':prenom', $_SESSION['prenom']);
                 $stmt->bindParam(':email', $email);
                 $stmt->bindParam(':password', $hashed_password);
-                $stmt->bindParam(':statut', $_SESSION['statut']);
-                $stmt->bindParam(':telephone', $_SESSION['telephone']); // Enregistrement du téléphone
+                $stmt->bindParam(':role', $_SESSION['role']);
+                $stmt->bindParam(':telephone', $_SESSION['telephone']);
+                $stmt->bindParam(':adresse', $_SESSION['adresse']);
 
                 if ($stmt->execute()) {
                     $_SESSION['message'] = "<p class='text-success'>Inscription réussie !</p>";
                     // Effacer les données enregistrées après une inscription réussie
                     unset($_SESSION['nom']);
                     unset($_SESSION['prenom']);
-                    unset($_SESSION['statut']);
+                    unset($_SESSION['role']);
                     unset($_SESSION['telephone']);
+                    unset($_SESSION['adresse']);
 
                     header("Location: register.php");
                     exit();

@@ -8,18 +8,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST["email"]);
     $password = trim($_POST["password"]);
 
-    $stmt = $conn->prepare("SELECT idAdmin, password, is_active FROM admin WHERE email = ?");
+    $stmt = $conn->prepare("SELECT idAdmin, password FROM admin WHERE email = ?");
     $stmt->execute([$email]);
     $admin = $stmt->fetch();
 
     if ($admin && password_verify($password, $admin["password"])) {
-        if ($admin["is_active"]) {
-            $_SESSION["admin_id"] = $admin["id"];
             header("Location: Admin_dashboard.php");
-            exit();
-        } else {
-            $message = "<p style='color: red;'>Votre compte n'est pas activé.</p>";
-        }
     } else {
         $message = "<p style='color: red;'>Identifiants incorrects.</p>";
     }

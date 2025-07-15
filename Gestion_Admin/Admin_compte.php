@@ -4,7 +4,7 @@ require "../db.php";
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = trim($_POST["name"]);
+    $nom = trim($_POST["nom"]);
     $email = trim($_POST["email"]);
     $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
     $admin_code = trim($_POST["admin_code"]);
@@ -20,9 +20,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->rowCount() > 0) {
             $message = "<p style='color: red;'>Email déjà utilisé !</p>";
         } else {
-            $stmt = $conn->prepare("INSERT INTO admin (name, email, password, is_active) VALUES (?, ?, ?, 1)");
+            $stmt = $conn->prepare("INSERT INTO admin (nom, email, password) VALUES (?, ?, ?)");
             
-            if ($stmt->execute([$name, $email, $password])) {
+            if ($stmt->execute([$nom, $email, $password])) {
                 $message = "<p style='color: green;'>Compte administrateur créé avec succès !</p>";
             } else {
                 $message = "<p style='color: red;'>Erreur lors de la création du compte.</p>";
@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form action="#" method="POST">
                 <div class="mb-3">
                     <label class="form-label">Nom :</label>
-                    <input type="text" name="name" class="form-control" required>
+                    <input type="text" name="nom" class="form-control" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email :</label>

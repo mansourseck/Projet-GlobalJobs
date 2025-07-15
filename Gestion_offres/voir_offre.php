@@ -1,4 +1,5 @@
 <?php 
+session_start();  
 require '../db.php'; 
 if (!isset($_GET['id'])) { die("⚠ Erreur : ID de l'offre non spécifié."); } 
 $offre_id = $_GET['id']; 

@@ -1,8 +1,9 @@
 <?php
 session_start();
 require 'db.php';
+require 'mailer_config.php'; // Appelle ta config/fonction sendMail()
 
-$message = ""; // Variable pour stocker le message
+$message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST["email"]);
@@ -20,15 +21,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $conn->prepare("UPDATE users SET reset_token = ? WHERE email = ?");
         $stmt->execute([$token, $email]);
 
-        // Affichage du lien directement sur la page
-        $reset_link = "http://localhost/projet_php_GlobalJobs/reinitialisation.php?token=" . $token;
-        $message= "<div class='alert alert-danger'> compte trouvé .</div>";
-        echo "<div class='alert alert-info'>Lien de réinitialisation : <a href='$reset_link'>$reset_link</a></div>";
-        
+        // Préparer le lien de réinitialisation
+        $reset_link = "http://localhost/projet_php_GlobalJobs/reinitialisation.php?token=" . urlencode($token);
+
+        // Préparer le contenu du mail
+        $subject = "Réinitialisation de votre mot de passe";
+        $body = "
+            <p>Bonjour,</p>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe sur GlobalJobs.</p>
+            <p>Cliquez sur le lien suivant pour choisir un nouveau mot de passe :<br>
+            <a href='$reset_link'>$reset_link</a></p>
+            <p>Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>
+        ";
+
+        // Envoi du mail
+        $result = sendMail($email, '', $subject, $body);
+        if ($result === true) {
+            $message = "<div class='alert alert-success'>Un email de réinitialisation vient d'être envoyé à votre adresse.</div>";
+        } else {
+            $message = "<div class='alert alert-danger'>Erreur lors de l'envoi du mail : $result</div>";
+        }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -36,7 +51,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Mot de passe oublié</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-     
         .header {
             position: fixed;
             top: 0;
@@ -49,9 +63,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
+            height: 90px; /* Ajoute une hauteur explicite */
         }
-
-        /* Bouton "Accueil" en bleu */
         .header .btn {
             background-color:rgba(1,125, 214, 0.8);
             color: white;
@@ -62,28 +75,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
             margin-left: 90px;
         }
+        .container {
+            padding-top: 110px; /* Ajuste pour compenser la hauteur du header */
+            min-height: calc(100vh - 110px);
+        }
         .card{
-        
            border-color: rgba(1,125, 214, 0.8);
-           margin-bottom: 330px;
+           margin-bottom: 0;
         }
         .alert{
-            margin-top: 100px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Reinitialisation</h1>
+        <h1>Réinitialisation</h1>
         <a href="index.php" class="btn btn-light">🏠 Accueil</a>
     </div>
-    <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="container d-flex justify-content-center align-items-center">
         <div class="card p-4 shadow-lg" style="width: 600px;">
             <h2 class="text-center">Réinitialisation du mot de passe</h2>
-
-            <!-- Affichage dynamique du message -->
-            <? $message; ?>
-
+            <?php if ($message) echo $message; ?>
             <form action="#" method="POST">
                 <div class="mb-3">
                     <label>Email</label>
@@ -91,7 +104,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Envoyer le lien</button>
             </form>
-
         </div>
     </div>
 </body>

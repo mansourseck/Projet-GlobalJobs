@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,17 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: 
+            background:
                 url('../images/image3.jpg') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;
         }
-        
+
         .header {
             position: fixed;
             width: 100%;
-            background: rgba(51, 213, 231, 0.8);
-            color:rgb(253, 251, 251);
+             background: rgba(51, 213, 231, 0.8);
+            color: rgb(253, 251, 251);
             padding: 15px;
             display: flex;
             justify-content: center;
@@ -69,9 +70,10 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
-        <a href="recruteurs.php" class="btn">🏠 Accueil</a>
+        <a href="../index.php" class="btn">🏠 Accueil</a>
         <h1>📝 Publier une nouvelle offre</h1>
     </div>
 
@@ -95,15 +97,30 @@
                     <input type="text" name="lieu" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">🗂 Secteur</label>
-                    <input type="text" name="secteur" class="form-control" required>
+                    <label class="form-label">🌐 Domaine</label>
+                    <input type="text" name="domain" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">⏳ Date d'expiration</label>
+                    <input type="date" name="date_expire" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">📝 Type de contrat</label>
+                    <select name="type_contrat" class="form-control" required>
+                        <option value="">-- Sélectionnez --</option>
+                        <option value="CDI">CDI</option>
+                        <option value="CDD">CDD</option>
+                        <option value="Stage">Stage</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Autre">Autre</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-success w-100">📩 Publier l'offre</button>
             </form>
         </div>
-    <div class="text-center mt-4">
+        <div class="text-center mt-4">
             <a href="dashboard_offres.php" class="btn btn-secondary">↩ Retour à la table des offres</a>
-        </div> 
+        </div>
     </div>
 
     <div class="footer">
@@ -112,4 +129,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

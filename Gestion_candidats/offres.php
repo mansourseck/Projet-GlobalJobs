@@ -1,6 +1,6 @@
 <?php 
 session_start(); 
-if (!isset($_SESSION["user_id"]) || strcasecmp($_SESSION["statut"], "candidat") !== 0) {     
+if (!isset($_SESSION["user_id"]) || strcasecmp($_SESSION["role"], "candidat") !== 0) {     
     header("Location: loginh.php");     
     exit(); 
 } 

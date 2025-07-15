@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../db.php';
+require_once '../db.php';
 
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['message'] = "❌ Vous devez être connecté.";
@@ -11,14 +11,27 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 try {
-    // Activer la gestion des erreurs PDO
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Requête avec LEFT JOIN pour récupérer toutes les offres
+    // Vérifier si le profil du candidat est complet
+    $stmt = $conn->prepare("SELECT * FROM candidat WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $profil = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Définis ici les champs obligatoires pour un profil "complet"
+    $profil_complet = !empty($profil['experience'])
+        && !empty($profil['metier'])
+        && !empty($profil['competences'])
+        && !empty($profil['cv']); // adapte selon tes champs
+
+    // Seules les offres publiées (statut = 'Publier')
     $stmt = $conn->prepare("
-        SELECT o.id, o.titre, o.description, o.lieu, o.secteur,r.entreprise
+        SELECT 
+            o.id, o.titre, o.description, o.lieu, o.domain, o.type_contrat, o.date_postee, o.date_expire,  
+            r.entreprise, r.secteur
         FROM offres o
         LEFT JOIN recruteurs r ON o.recruteur_id = r.id
+        WHERE o.statut = 'Publier'
     ");
     $stmt->execute();
     $offres = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -29,6 +42,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,12 +50,12 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: 
+            background:
                 url('../images/image2.jpg') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;
         }
-        
+
         .header {
             position: fixed;
             width: 100%;
@@ -122,6 +136,7 @@ try {
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <a href="candidats.php" class="btn">🏠 Accueil</a>
@@ -141,25 +156,40 @@ try {
 
         <div class="row">
             <?php foreach ($offres as $offre): ?>
-                <div class="col-md-6 mb-4">
+                <div class="col-sm-6 col-md-4 mb-4">
                     <div class="card-custom">
                         <h5>📝 <?= htmlspecialchars($offre["titre"]) ?></h5>
                         <p><strong>🏢 Entreprise :</strong> <?= htmlspecialchars($offre["entreprise"]) ?></p>
                         <p><strong>📍 Lieu :</strong> <?= htmlspecialchars($offre["lieu"]) ?></p>
                         <p><strong>🗂 Secteur :</strong> <?= htmlspecialchars($offre["secteur"]) ?></p>
+                        <p><strong>🌐 Domaine d'activité :</strong> <?= htmlspecialchars($offre["domain"]) ?></p>
+                        <p><strong>📅 Date postée :</strong> <?= htmlspecialchars($offre["date_postee"]) ?></p>
+                        <p><strong>⏳ Date d'expiration :</strong> <?= htmlspecialchars($offre["date_expire"]) ?></p>
+                        <p><strong>📝 Type de contrat :</strong> <?= htmlspecialchars($offre["type_contrat"]) ?></p>
                         <div class="alert alert-light">
                             <?= nl2br(htmlspecialchars(substr($offre["description"], 0, 150))) ?>...
                         </div>
                         <div class="d-flex gap-2 mt-auto">
-                            <a href="postuler_offre.php?id=<?= $offre['id'] ?>" class="btn btn-apply flex-fill">📩 Postuler</a>
+                            <?php if($profil_complet): ?>
+                                <a href="postuler_offre.php?id=<?= $offre['id'] ?>" class="btn btn-apply flex-fill">📩 Postuler</a>
+                            <?php else: ?>
+                                <button class="btn btn-apply flex-fill" disabled title="Complétez d'abord votre profil">Profil incomplet</button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
-    
+
+        <?php if(!$profil_complet): ?>
+            <div class="alert alert-warning text-center mt-4">
+                ⚠️ Veuillez <a href="../Gestion_candidats/profile_candidats.php" class="alert-link">compléter votre profil</a> pour pouvoir postuler aux offres.
+            </div>
+        <?php endif; ?>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

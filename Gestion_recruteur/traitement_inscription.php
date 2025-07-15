@@ -4,19 +4,12 @@ require '../db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $entreprise = trim($_POST["entreprise"]);
-    $email_entreprise = trim($_POST["email_entreprise"]); // Email professionnel de l'entreprise
     $secteur = trim($_POST["secteur"]);
-    $adresse = trim($_POST["adresse"]);
+    $adresse_entreprise = trim($_POST["adresse_entreprise"]);
     
     // Vérification des champs obligatoires
-    if (empty($entreprise) || empty($email_entreprise) || empty($secteur) || empty($adresse)) {
+    if (empty($entreprise) || empty($secteur) || empty($adresse_entreprise)) {
         $_SESSION['message'] = "❌ Tous les champs doivent être remplis.";
-        exit();
-    }
-
-    // Vérification du format de l'email entreprise
-    if (!filter_var($email_entreprise, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['message'] = "❌ Email de l'entreprise invalide.";
         exit();
     }
 
@@ -28,17 +21,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $user_id = $_SESSION['user_id']; // ID utilisateur connecté
 
-    // Vérifier si cet email d’entreprise est déjà utilisé
-    $stmt = $conn->prepare("SELECT id FROM Recruteurs WHERE email_entreprise = ?");
-    $stmt->execute([$email_entreprise]);
+    // Vérifier si cet d’entreprise est déjà utilisé
+    $stmt = $conn->prepare("SELECT id FROM Recruteurs WHERE entreprise = ?");
+    $stmt->execute([$entreprise]);
     if ($stmt->fetch()) {
-        $_SESSION['message'] = "❌ Cet email entreprise est déjà utilisé.";
+        $_SESSION['message'] = "❌ Cet entreprise est déjà utilisé.";
         exit();
     }
 
     // Insérer l’entreprise dans `Recruteurs`
-    $stmt = $conn->prepare("INSERT INTO Recruteurs (user_id, entreprise, email_entreprise, secteur, adresse) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$user_id, $entreprise, $email_entreprise, $secteur, $adresse]);
+    $stmt = $conn->prepare("INSERT INTO Recruteurs (user_id, entreprise,secteur, adresse_entreprise) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$user_id, $entreprise, $secteur, $adresse_entreprise]);
 
     $_SESSION['message'] = "✅ Entreprise enregistrée avec succès !";
     header("location: profil_recruteur.php");
